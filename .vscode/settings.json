@@ -1,0 +1,11 @@
+{
+    "files.associations": {
+        "*.ipp": "cpp",
+        "ostream": "cpp",
+        "stdexcept": "cpp",
+        "exception": "cpp",
+        "mutex": "cpp",
+        "array": "cpp",
+        "iosfwd": "cpp"
+    }
+}
