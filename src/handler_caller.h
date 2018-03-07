@@ -7,36 +7,39 @@
 namespace dbproxy
 {
 
+/**
+ * Custom asio async handler.
+ */
 template <typename Allocator, typename F>
 class handler_caller
 {
   public:
-    using this_type = handler_caller<Allocator, F>;
+    using handler_type = handler_caller<Allocator, F>;
 
     handler_caller(Allocator &allocator, const F &h) : allocator(allocator),
                                                        handler(h)
     {
     }
 
-    handler_caller(const this_type &o) : allocator(o.allocator),
-                                         handler(o.handler)
+    handler_caller(const handler_type &o) : allocator(o.allocator),
+                                            handler(o.handler)
     {
     }
 
     ~handler_caller() = default;
 
-    friend void *asio_handler_allocate(std::size_t size, this_type *ctx)
+    friend void *asio_handler_allocate(std::size_t size, handler_type *ctx)
     {
         return ctx->allocator.allocate(size);
     }
 
-    friend void asio_handler_deallocate(void *ptr, std::size_t, this_type *ctx)
+    friend void asio_handler_deallocate(void *ptr, std::size_t, handler_type *ctx)
     {
         ctx->allocator.deallocate(ptr);
     }
 
     template <typename H>
-    friend void asio_handler_invoke(const H &function, this_type *context)
+    friend void asio_handler_invoke(const H function, handler_type *context)
     {
         using boost::asio::asio_handler_invoke;
         asio_handler_invoke(function, boost::addressof(context->handler));

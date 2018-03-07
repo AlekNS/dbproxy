@@ -1,11 +1,17 @@
 #include <boost/thread.hpp>
 
 #include "server.h"
+#include "logger.h"
 #include "parser.h"
 
 void register_parsers()
 {
-    dbproxy::parser_registry::register_it("pgsql", std::make_shared<dbproxy::parser_instantiator_pgsql>());
+    dbproxy::parser_registry::register_it("pgsql", std::make_shared<dbproxy::parser_instantiator_pgsql_simple_query>());
+}
+
+void register_loggers(const dbproxy::config &cfg)
+{
+    dbproxy::logger_registry::register_it("common", std::make_shared<dbproxy::logger_instantiator_simple_out_file>(cfg.log_file));
 }
 
 int main(const int argc, const char *const *argv)
@@ -15,6 +21,8 @@ int main(const int argc, const char *const *argv)
         register_parsers();
 
         auto cfg = dbproxy::config::from_args(argc, argv);
+
+        register_loggers(cfg);
 
         boost::asio::io_service io_service(cfg.workers_count);
 

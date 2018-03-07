@@ -8,6 +8,9 @@
 namespace dbproxy
 {
 
+/**
+ * Memory allocator for custom asio async handler.
+ */
 template <size_t alloc_size>
 class handler_allocator : private boost::noncopyable
 {
@@ -37,7 +40,7 @@ class handler_allocator : private boost::noncopyable
 
   private:
     bool is_use{false};
-    boost::aligned_storage<alloc_size> buffer;
+    boost::aligned_storage<alloc_size> buffer{};
 };
 
 }

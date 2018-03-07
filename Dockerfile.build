@@ -1,0 +1,11 @@
+FROM alpine:3.7
+
+WORKDIR /usr/src/app
+
+ADD . .
+
+RUN apk add --update g++ make cmake boost-dev boost boost-unit_test_framework boost-program_options
+
+RUN mkdir -p build && mkdir -p log && cd build && cmake .. && make
+
+CMD build/DbProxy --db-type pgsql --log-file log/queries.log --local-port 54321 --local-ip 127.0.0.1 --upstream-port 5432 --upstream-ip 172.18.0.1

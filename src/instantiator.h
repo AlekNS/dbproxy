@@ -7,12 +7,12 @@ namespace dbproxy
 /**
  * Simple product creator.
  */
-template <typename Tinstance>
+template <typename Tinstance, typename ...Targs>
 class instantiator
 {
   public:
     virtual ~instantiator() = default;
-    virtual std::shared_ptr<Tinstance> create() = 0;
+    virtual std::shared_ptr<Tinstance> create(Targs...) = 0;
 };
 
 /**

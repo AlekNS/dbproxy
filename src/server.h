@@ -19,18 +19,19 @@ class server : private boost::noncopyable
     using acceptor = boost::asio::ip::tcp::acceptor;
     using io_service = boost::asio::io_service;
 
-    server(io_service &ios, const config cfg);
-
     virtual ~server() = default;
 
     /**
-     * Start accept connections
+     * Init server configuration.
+     */
+    server(io_service &ios, const config cfg);
+
+    /**
+     * Accept connections
      */
     bool listen();
 
   protected:
-    // handle connection
-    void handle_accept(std::shared_ptr<connection> conn, const error_code &error);
 
     config conf;
     io_service &ios;

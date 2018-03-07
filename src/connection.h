@@ -13,12 +13,12 @@ namespace dbproxy
 /**
  * Connection
  */
-class connection : public std::enable_shared_from_this<connection>
+class connection : public std::enable_shared_from_this<connection>, private boost::noncopyable
 {
   public:
     enum
     {
-        def_buffer_size = 1024 * 6
+        def_buffer_size = 8192
     };
     using error_code = boost::system::error_code;
     using io_service = boost::asio::io_service;
@@ -26,18 +26,15 @@ class connection : public std::enable_shared_from_this<connection>
     using socket = boost::asio::ip::tcp::socket;
     using buffer = std::array<uint8_t, def_buffer_size>;
 
-    connection(io_service &ios);
+    connection(io_service &ios, std::shared_ptr<parser> local_parser);
     virtual ~connection() = default;
 
     void start(const endpoint &down_endpoint);
 
-    void handle_connection(const error_code &ec);
-
-    socket &get_upstream_socket();
     socket &get_local_socket();
 
   private:
-    void close();
+    void handle_connection(const error_code &ec);
 
     void handle_local_write(const error_code &ec);
     void handle_local_read(const error_code &ec,
@@ -47,15 +44,20 @@ class connection : public std::enable_shared_from_this<connection>
     void handle_upstream_read(const error_code &ec,
                               const size_t bytes_transferred);
 
-    io_service &ios;
-    std::mutex mtx;
+    void close();
 
+    io_service &ios;
+    io_service::strand strand_lock;
+
+    std::mutex mtx;
     buffer upstream_buffer;
     buffer local_buffer;
     socket upstream_sock;
     socket local_sock;
     handler_allocator<def_buffer_size> upstream_socket_allocator;
     handler_allocator<def_buffer_size> local_socket_allocator;
+
+    std::shared_ptr<parser> local_parser;
 };
 
 }

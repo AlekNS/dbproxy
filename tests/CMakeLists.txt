@@ -8,9 +8,11 @@ add_definitions (-DBOOST_ALL_DYN_LINK)
 
 include_directories (../src ${Boost_INCLUDE_DIRS})
 
-add_executable(utest test_pgsql_parser.cpp)
+add_executable(test_pgsql_parser
+    test_pgsql_parser.cpp
+    ../src/parser.cpp
+)
 
-target_link_libraries(utest ${Boost_LIBRARIES}) # ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+target_link_libraries(test_pgsql_parser ${Boost_LIBRARIES}) # ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 
-enable_testing()
-add_test(NAME MyTest COMMAND utest)
+add_test(NAME PgSqlParser COMMAND test_pgsql_parser)

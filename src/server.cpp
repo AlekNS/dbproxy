@@ -5,10 +5,12 @@
 using namespace dbproxy;
 using namespace boost;
 
+using address = boost::asio::ip::address;
+
 server::server(server::io_service &ios, const config cfg) : ios(ios),
                                                             conf(cfg),
-                                                            local_acceptor(ios, server::endpoint(boost::asio::ip::address::from_string(cfg.local_ip), cfg.local_port)),
-                                                            upstream_endpoint(boost::asio::ip::address::from_string(cfg.upstream_ip), cfg.upstream_port)
+                                                            local_acceptor(ios, server::endpoint(address::from_string(cfg.local_ip), cfg.local_port)),
+                                                            upstream_endpoint(address::from_string(cfg.upstream_ip), cfg.upstream_port)
 {
 }
 
@@ -16,11 +18,25 @@ bool server::listen()
 {
     try
     {
-        auto current_connection = std::make_shared<connection>(ios);
+        auto local_logger = logger_registry::get("common")->create();
+        auto pgsql_local_parser = parser_registry::get(conf.db_type);
+
+        auto current_connection = std::make_shared<connection>(ios, pgsql_local_parser->create(local_logger));
         local_acceptor.async_accept(
             current_connection->get_local_socket(),
             [this, current_connection](const server::error_code &ec) {
-                handle_accept(current_connection, ec);
+                if (!ec)
+                {
+                    current_connection->start(upstream_endpoint);
+                    if (!listen())
+                    {
+                        std::cerr << "Fail to listen local socket." << std::endl;
+                    }
+                }
+                else
+                {
+                    std::cerr << "Error was occurred: " << ec.message() << std::endl;
+                }
             });
     }
     catch (const std::exception &e)
@@ -30,21 +46,4 @@ bool server::listen()
     }
 
     return true;
-}
-
-void server::handle_accept(std::shared_ptr<connection> current_connection, const server::error_code &ec)
-{
-    std::cout << "Accept" << std::endl;
-    if (!ec)
-    {
-        current_connection->start(upstream_endpoint);
-        if (!listen())
-        {
-            std::cerr << "Fail to listen." << std::endl;
-        }
-    }
-    else
-    {
-        std::cerr << "Error: " << ec.message() << std::endl;
-    }
 }
